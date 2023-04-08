@@ -81,33 +81,34 @@ def show_distribution(col: str, train: pd.DataFrame, test: pd.DataFrame, save_pa
     :param save_dpi: The quality of the saved plot. Only takes effect if save_path is not None.
     :return: None
     """
-    fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(7, 5), constrained_layout=True, sharex="col",
+    fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(5, 5), constrained_layout=True, sharex="col",
                              gridspec_kw={"height_ratios": [3, 1]})
 
     # Graph 1: Histogram
-    axes[0, 0].set_title(f"{col} Distribution - Train Data")
-    axes[0, 0].set_ylabel("Count")
-    axes[0, 0].hist(
+    axes[0].set_title(f"{col} Distribution")
+
+    axes[0].set_ylabel("Count")
+    axes[0].hist(
         train[col],
         bins=min(train.shape[0] // 10, 24),
         color="royalblue",
-        alpha=0.9,
+        alpha=0.5,
+        label="Train Data"
     )
 
-    axes[0, 1].set_title(f"{col} Distribution - Test Data")
-    axes[0, 1].set_ylabel("Count")
-    axes[0, 1].hist(
+    axes[0].set_ylabel("Count")
+    axes[0].hist(
         test[col],
         bins=min(test.shape[0] // 10, 24),
         color="crimson",
-        alpha=0.8,
+        alpha=0.5,
+        label="Test Data"
     )
 
+    axes[0].legend()
+
     # Graph 2: Box plot
-    axes[1, 0].boxplot(train[col], vert=False)
-    axes[1, 0].set_yticks([])
-    axes[1, 1].boxplot(test[col], vert=False)
-    axes[1, 1].set_yticks([])
+    axes[1].boxplot([test[col], train[col]], vert=False, labels=["Test Data", "Train Data"], widths=0.5)
     plt.show()
 
     # Print out numerical distribution statistics
