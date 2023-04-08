@@ -11,13 +11,15 @@ def header(width: int, title: str) -> str:
     :return: The generated header, as a string
     """
     calculated_width = width if len(title) + 4 <= width else len(title) + 4  # Auto padding
-    border_top = '╔' + '═'*(calculated_width - 2) + '╗'
-    border_bottom = '╚' + '═'*(calculated_width - 2) + '╝'
+    border_top = '╔' + '═' * (calculated_width - 2) + '╗'
+    border_bottom = '╚' + '═' * (calculated_width - 2) + '╝'
     border_vertical = '║'
     return f"{border_top}\n{border_vertical}{title : ^{calculated_width - 2}}{border_vertical}\n{border_bottom}"
 
 
-def show_aggregate_distribution(train: pd.DataFrame, test: pd.DataFrame, save_path: str=None, save_dpi: int=300):
+def show_aggregate_distribution(train: pd.DataFrame, test: pd.DataFrame, save_path: str = None, save_dpi: int = 300):
+    plt.style.use('ggplot')
+
     fig, axes = plt.subplots(nrows=3, ncols=3, figsize=(15, 15), constrained_layout=True)
     axes = axes.ravel()
 
@@ -67,17 +69,20 @@ def show_aggregate_distribution(train: pd.DataFrame, test: pd.DataFrame, save_pa
         fig.savefig(save_path, dpi=save_dpi)
 
 
-def show_distribution(col: str, train: pd.DataFrame, test: pd.DataFrame, save_path: str=None, save_dpi: int=300) -> None:
+def show_distribution(col: str, train: pd.DataFrame, test: pd.DataFrame, save_path: str = None,
+                      save_dpi: int = 300) -> None:
     """
-    Displays comparison histograms and accompanying box plots for col of both train and test DataFrame. Then save that plot into the specified path, if it exists.
+    Displays comparison histograms and accompanying box plots for col of both train and test DataFrame. Then save that
+    plot into the specified path, if it exists.
     :param col: Name of the column to be analyzed.
-    :param train: train DataFrame.
-    :param test: test DataFrame.
+    :param train: train DataFrame or Numpy Array.
+    :param test: test DataFrame or Numpy Array.
     :param save_path: The location for the plot produced by this function to be saved at. Defaults to None (no saving).
     :param save_dpi: The quality of the saved plot. Only takes effect if save_path is not None.
     :return: None
     """
-    fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(7, 5), constrained_layout=True, sharex="col", gridspec_kw={"height_ratios": [3, 1]})
+    fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(7, 5), constrained_layout=True, sharex="col",
+                             gridspec_kw={"height_ratios": [3, 1]})
 
     # Graph 1: Histogram
     axes[0, 0].set_title(f"{col} Distribution - Train Data")
