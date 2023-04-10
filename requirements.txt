@@ -1,9 +1,10 @@
 jupyter
 ipython
-numpy
-matplotlib
+numpy~=1.24.2
+matplotlib~=3.7.1
 graphviz
-pandas
-seaborn
+pandas~=2.0.0
+seaborn~=0.12.2
 scikit-learn
 gym
+joblib
