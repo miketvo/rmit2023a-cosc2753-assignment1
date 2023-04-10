@@ -122,7 +122,13 @@ def show_distribution(col: str, train: pd.DataFrame, test: pd.DataFrame, save_pa
     plt.show()
 
     # Print out numerical distribution statistics
-    df_prg_summary = pd.concat([train[[col]].describe(), test[[col]].describe()], axis=1)
+    df_prg_summary = pd.concat(
+        [
+            train[[col]].describe().apply(lambda s: s.apply('{0:.4f}'.format)),
+            test[[col]].describe().apply(lambda s: s.apply('{0:.4f}'.format))
+        ],
+        axis=1
+    )
     df_prg_summary.columns = [f"{col}_TRAIN", f"{col}_TEST"]
     print(df_prg_summary)
 
