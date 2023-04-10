@@ -131,19 +131,8 @@ def show_distribution(col: str, train: pd.DataFrame, test: pd.DataFrame, save_pa
     )
     df_prg_summary.columns = [f"{col}_TRAIN", f"{col}_TEST"]
     print(df_prg_summary)
-
-    # Count values outside of 1.5*IQR range (outliers)
-    q1 = train[[col]].quantile(0.25)
-    q2 = train[[col]].quantile(0.75)
-    iqr = q2 - q1
-    outliers_count_train = ((train[[col]] < (q1 - 1.5 * iqr)) | (train[[col]] > (q2 + 1.5 * iqr))).sum().sum()
-    q1 = test[[col]].quantile(0.25)
-    q2 = test[[col]].quantile(0.75)
-    iqr = q2 - q1
-    outliers_count_test = ((test[[col]] < (q1 - 1.5 * iqr)) | (test[[col]] > (q2 + 1.5 * iqr))).sum().sum()
-
-    print(f"\nNumber of outliers in train data: {outliers_count_train}")
-    print(f"Number of outliers in test data: {outliers_count_test}")
+    print(f"\nNumber of outliers in train data: {count_outliers_iqr(col, train)}")
+    print(f"Number of outliers in test data: {count_outliers_iqr(col, test)}")
 
     if save_path is not None:
         fig.savefig(f"../images/EDA_Distribution_{col}.png", dpi=save_dpi)
@@ -215,6 +204,21 @@ def show_boxplots(train: pd.DataFrame, test: pd.DataFrame, save_path: str = None
         fig.savefig(save_path, dpi=save_dpi)
 
 
+def count_outliers_iqr(col: str, df: pd.DataFrame, whisker_width: float = 1.5) -> int:
+    """
+    Counts the number of outliers in the given column using the interquartile range (IQR) method.
+    :param col: Name of the column to count outliers in.
+    :param df: Pandas dataframe containing the column.
+    :param whisker_width: The multiplier used to calculate the lower and upper bounds for outlier detection.
+    Defaults to 1.5.
+    :return: The number of outliers in the specified column.
+    """
+    q1 = df[[col]].quantile(0.25)
+    q2 = df[[col]].quantile(0.75)
+    iqr = q2 - q1
+    return ((df[[col]] < (q1 - whisker_width * iqr)) | (df[[col]] > (q2 + whisker_width * iqr))).sum().sum()
+
+
 def count_zero_vals(df: pd.DataFrame, cols: list[str]) -> str:
     """
     Count the number of numerical values equal to zero in a dataset on specified columns
@@ -231,3 +235,11 @@ def count_zero_vals(df: pd.DataFrame, cols: list[str]) -> str:
         missing_percentage = zeroes_count / len(df) * 100
         rows += f"{col:10}{zeroes_count:>10}{missing_percentage:>14.2f}%\n"
     return head + rows
+
+
+def count_dup_entries(df: pd.DataFrame) -> int:
+    return df.duplicated().sum()
+
+
+def count_dup_patients(df: pd.DataFrame) -> int:
+    return df.duplicated(subset='ID').sum()
