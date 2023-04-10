@@ -19,6 +19,15 @@ def header(width: int, title: str) -> str:
 
 
 def show_aggregate_distribution(train: pd.DataFrame, test: pd.DataFrame, save_path: str = None, save_dpi: int = 300):
+    """
+    Displays an overview histogram map (y-axis is probability density) of all features in train and test DataFrame,
+    overlaid on top of each other (except for the target column).
+    :param train: train DataFrame.
+    :param test: test DataFrame.
+    :param save_path: The location for the plot produced by this function to be saved at. Defaults to None (no saving).
+    :param save_dpi: The quality of the saved plot. Only takes effect if save_path is not None.
+    :return: None
+    """
     plt.style.use('ggplot')
 
     fig, axes = plt.subplots(nrows=3, ncols=3, figsize=(15, 15), constrained_layout=True)
@@ -76,8 +85,8 @@ def show_distribution(col: str, train: pd.DataFrame, test: pd.DataFrame, save_pa
     Displays comparison histograms and accompanying box plots for col of both train and test DataFrame. Then save that
     plot into the specified path, if it exists.
     :param col: Name of the column to be analyzed.
-    :param train: train DataFrame or Numpy Array.
-    :param test: test DataFrame or Numpy Array.
+    :param train: train DataFrame.
+    :param test: test DataFrame.
     :param save_path: The location for the plot produced by this function to be saved at. Defaults to None (no saving).
     :param save_dpi: The quality of the saved plot. Only takes effect if save_path is not None.
     :return: None
@@ -172,6 +181,28 @@ def show_distribution_corr(feature_col: str, target_col: str, df: pd.DataFrame, 
         vert=False, labels=["Positive", "Negative"], widths=0.5
     )
     axes[1].set_xlabel(feature_col, fontsize=12)
+
+    plt.show()
+    if save_path is not None:
+        fig.savefig(save_path, dpi=save_dpi)
+
+
+def show_boxplots(train: pd.DataFrame, test: pd.DataFrame, save_path: str = None, save_dpi: int = 300) -> None:
+    """
+    A wrapper for Seaborn boxplot to show distribution and outliers for both train and test data.
+    :param train: train DataFrame.
+    :param test: test DataFrame.
+    :param save_path: The location for the plot produced by this function to be saved at. Defaults to None (no saving).
+    :param save_dpi: The quality of the saved plot. Only takes effect if save_path is not None.
+    :return: None
+    """
+    fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(15, 10))
+
+    sns.boxplot(data=train, orient="h", ax=axes[0])
+    sns.boxplot(data=test, orient="h", ax=axes[1])
+
+    axes[0].set_title("Train Data")
+    axes[1].set_title("Test Data")
 
     plt.show()
     if save_path is not None:
