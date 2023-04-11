@@ -1,7 +1,7 @@
 import numpy as np
 
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, roc_auc_score, classification_report
 from sklearn.model_selection import train_test_split, cross_validate
 from sklearn.preprocessing import StandardScaler, PolynomialFeatures
 
@@ -72,9 +72,12 @@ class LogisticRegressionModel:
         #  Performance Measurements  #
         ##############################
 
+        val_pred_y = self.estimator.predict(val_X_poly4)
         self.performance = {
             "train_f1": cv_results["test_score"].mean(),
-            "val_f1": f1_score(val_y, self.estimator.predict(val_X_poly4)),
+            "f1": f1_score(val_y, val_pred_y),
+            "roc_auc": roc_auc_score(val_y, val_pred_y),
+            "classification_report": classification_report(val_y, val_pred_y),
         }
 
         ################
@@ -82,6 +85,5 @@ class LogisticRegressionModel:
         ################
         pred_X = poly.fit_transform(self.data.predict)
         pred_X = scaler.fit_transform(pred_X)
-        pred_y = self.estimator.predict(pred_X)
-        pred_y = np.where(pred_y == 0.0, "Negative", "Positive")
-        self.predictions = self.estimator.predict(pred_y)
+        self.predictions = self.estimator.predict(pred_X)
+        self.predictions = np.where(self.predictions == 0.0, "Negative", "Positive")

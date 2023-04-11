@@ -24,10 +24,10 @@ class DataCSV:
         self.source_predict = pd.read_csv(predict_data_path)
 
         # Cleaning
-        self.train = self.source_train.drop_duplicates()
+        self.train = self.source_train.drop_duplicates(inplace=False)
         self.train = self.train.drop(columns=['ID', 'Insurance'])
         self.predict = self.source_predict.drop(columns=['ID', 'Insurance'])
-        self.train = self.source_train.drop_duplicates(inplace=True)
+        self.train.drop_duplicates(inplace=True)
 
         self.train['PRG'] = self.train['PRG'].replace(0, self.train['PRG'].mean())
         self.train['PL'] = self.train['PL'].replace(0, self.train['PL'].mean())
