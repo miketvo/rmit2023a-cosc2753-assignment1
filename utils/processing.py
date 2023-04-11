@@ -13,20 +13,20 @@ class DataCSV:
     A class for processing CSV data for machine leaning algorithms.
     """
 
-    def __init__(self, train_data_path: str, test_data_path: str, imputer_n_neighbors: int = 30):
+    def __init__(self, train_data_path: str, predict_data_path: str, imputer_n_neighbors: int = 30):
         """
         A class to automate cleaning and processing data.
         :param train_data_path: The path to the training dataset file.
-        :param test_data_path: The path to the test dataset file.
+        :param predict_data_path: The path to the test dataset file.
         :param imputer_n_neighbors: The number of neighbors to use in the KNN imputer to deal with outliers. Defaults to 30.
         """
         self.source_train = pd.read_csv(train_data_path)
-        self.source_test = pd.read_csv(test_data_path)
+        self.source_predict = pd.read_csv(predict_data_path)
 
         # Cleaning
         self.train = self.source_train.drop_duplicates()
         self.train = self.train.drop(columns=['ID', 'Insurance'])
-        self.test = self.source_test.drop(columns=['ID', 'Insurance'])
+        self.predict = self.source_predict.drop(columns=['ID', 'Insurance'])
         self.train = self.source_train.drop_duplicates(inplace=True)
 
         self.train['PRG'] = self.train['PRG'].replace(0, self.train['PRG'].mean())
@@ -53,9 +53,9 @@ class DataCSV:
             if col == "Sepsis":
                 continue
             self.train[col] = np.where(self.train[col] != 0, np.log(self.train[col] + added_const), 0)
-            self.test[col] = np.where(self.test[col] != 0, np.log(self.test[col] + added_const), 0)
+            self.predict[col] = np.where(self.predict[col] != 0, np.log(self.predict[col] + added_const), 0)
             self.train[[col]] = scaler.fit_transform(self.train[[col]])
-            self.test[[col]] = scaler.fit_transform(self.test[[col]])
+            self.predict[[col]] = scaler.fit_transform(self.predict[[col]])
 
         negatives = self.train[self.train["Sepsis"] == 0]
         positives = self.train[self.train["Sepsis"] == 1]
@@ -74,14 +74,14 @@ class DataCSV:
         overlaid on top of each other (except for the target column).
         :return: None
         """
-        show_aggregate_distribution(self.train, self.test)
+        show_aggregate_distribution(self.train, self.predict)
 
     def show_boxplots(self) -> None:
         """
         Shows comparison histograms and accompanying box plots for col of both train and test DataFrame.
         :return: None
         """
-        show_boxplots(self.train, self.test)
+        show_boxplots(self.train, self.predict)
 
 
 def impute_outliers_iqr(col: str, df: pd.DataFrame, imputer, whisker_width: float = 1.5) -> None:
