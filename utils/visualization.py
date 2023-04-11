@@ -21,7 +21,8 @@ def header(width: int, title: str) -> str:
 def show_aggregate_distribution(train: pd.DataFrame, test: pd.DataFrame, save_path: str = None, save_dpi: int = 300):
     """
     Displays an overview histogram map (y-axis is probability density) of all features in train and test DataFrame,
-    overlaid on top of each other (except for the target column).
+    overlaid on top of each other (except for the target column). Then save that plot into the specified path, if it
+    exists.
     :param train: train DataFrame.
     :param test: test DataFrame.
     :param save_path: The location for the plot produced by this function to be saved at. Defaults to None (no saving).
@@ -82,7 +83,7 @@ def show_aggregate_distribution(train: pd.DataFrame, test: pd.DataFrame, save_pa
 def show_distribution(col: str, train: pd.DataFrame, test: pd.DataFrame, save_path: str = None,
                       save_dpi: int = 300) -> None:
     """
-    Displays comparison histograms and accompanying box plots for col of both train and test DataFrame. Then save that
+    Shows comparison histograms and accompanying box plots for col of both train and test DataFrame. Then save that
     plot into the specified path, if it exists.
     :param col: Name of the column to be analyzed.
     :param train: train DataFrame.
@@ -141,14 +142,13 @@ def show_distribution(col: str, train: pd.DataFrame, test: pd.DataFrame, save_pa
 def show_distribution_corr(feature_col: str, target_col: str, df: pd.DataFrame, title: str = None,
                            ticker_multiple_locator: int = 5, save_path: str = None, save_dpi: int = 300) -> None:
     """
-    Show a comparison plot a target categorical binary distribution on a specified feature.
+    Shows a comparison plot a target categorical binary distribution on a specified feature.
     classes.
     :param feature_col: Name of the feature column.
     :param target_col: Name of the target column.
     :param df: DataFrame containing feature and target column.
     :param title: Title for the plot, defaults to no title.
-    :param ticker_multiple_locator: Set a tick on each integer multiple of the base within the view interval. Defaults
-    to 5.
+    :param ticker_multiple_locator: Set a tick on each integer multiple of the base within the view interval. Defaults to 5.
     :param save_path: The location for the plot produced by this function to be saved at. Defaults to None (no saving).
     :param save_dpi: The quality of the saved plot. Only takes effect if save_path is not None.
     :return: None
@@ -209,8 +209,7 @@ def count_outliers_iqr(col: str, df: pd.DataFrame, whisker_width: float = 1.5) -
     Counts the number of outliers in the given column using the interquartile range (IQR) method.
     :param col: Name of the column to count outliers in.
     :param df: Pandas dataframe containing the column.
-    :param whisker_width: The multiplier used to calculate the lower and upper bounds for outlier detection.
-    Defaults to 1.5.
+    :param whisker_width: The multiplier used to calculate the lower and upper bounds for outlier detection. Defaults to 1.5.
     :return: The number of outliers in the specified column.
     """
     q1 = df[[col]].quantile(0.25)

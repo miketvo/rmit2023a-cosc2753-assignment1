@@ -8,47 +8,57 @@ from sklearn.utils import resample
 from utils.visualization import show_aggregate_distribution, show_boxplots
 
 
-class Data:
+class DataCSV:
+    """
+    A class for processing CSV data for machine leaning algorithms.
+    """
+
     def __init__(self, train_data_path: str, test_data_path: str, imputer_n_neighbors: int = 30):
-        self.__source_train = pd.read_csv(train_data_path)
-        self.__source_test = pd.read_csv(test_data_path)
+        """
+        A class to automate cleaning and processing data.
+        :param train_data_path: The path to the training dataset file.
+        :param test_data_path: The path to the test dataset file.
+        :param imputer_n_neighbors: The number of neighbors to use in the KNN imputer to deal with outliers. Defaults to 30.
+        """
+        self.source_train = pd.read_csv(train_data_path)
+        self.source_test = pd.read_csv(test_data_path)
 
-        # Preprocessing
-        self.__train = self.__source_train.drop_duplicates()
-        self.__train = self.__train.drop(columns=['ID', 'Insurance'])
-        self.__test = self.__source_test.drop(columns=['ID', 'Insurance'])
-        self.__train = self.__source_train.drop_duplicates(inplace=True)
+        # Cleaning
+        self.train = self.source_train.drop_duplicates()
+        self.train = self.train.drop(columns=['ID', 'Insurance'])
+        self.test = self.source_test.drop(columns=['ID', 'Insurance'])
+        self.train = self.source_train.drop_duplicates(inplace=True)
 
-        self.__train['PRG'] = self.__train['PRG'].replace(0, self.__train['PRG'].mean())
-        self.__train['PL'] = self.__train['PL'].replace(0, self.__train['PL'].mean())
-        self.__train['PR'] = self.__train['PR'].replace(0, self.__train['PR'].mean())
-        self.__train['SK'] = self.__train['SK'].replace(0, self.__train['SK'].mean())
-        self.__train['TS'] = self.__train['TS'].replace(0, self.__train['TS'].mean())
-        self.__train['M11'] = self.__train['M11'].replace(0, self.__train['M11'].mean())
-        self.__train['BD2'] = self.__train['BD2'].replace(0, self.__train['BD2'].mean())
+        self.train['PRG'] = self.train['PRG'].replace(0, self.train['PRG'].mean())
+        self.train['PL'] = self.train['PL'].replace(0, self.train['PL'].mean())
+        self.train['PR'] = self.train['PR'].replace(0, self.train['PR'].mean())
+        self.train['SK'] = self.train['SK'].replace(0, self.train['SK'].mean())
+        self.train['TS'] = self.train['TS'].replace(0, self.train['TS'].mean())
+        self.train['M11'] = self.train['M11'].replace(0, self.train['M11'].mean())
+        self.train['BD2'] = self.train['BD2'].replace(0, self.train['BD2'].mean())
 
-        self.__train = self.__train.rename(columns={"Sepssis": "Sepsis"})
-        self.__train["Sepsis"] = self.__train["Sepsis"].map({"Negative": 0.0, "Positive": 1.0})
+        self.train = self.train.rename(columns={"Sepssis": "Sepsis"})
+        self.train["Sepsis"] = self.train["Sepsis"].map({"Negative": 0.0, "Positive": 1.0})
 
         # Processing
-        for col in self.__train.columns:
+        for col in self.train.columns:
             if col == "Sepsis":  # Target column does not have outliers, as it is categorical
                 continue
-            impute_outliers_iqr(col, self.__train, KNNImputer(n_neighbors=imputer_n_neighbors))
-            cap_outliers_iqr(col, self.__train)
+            impute_outliers_iqr(col, self.train, KNNImputer(n_neighbors=imputer_n_neighbors))
+            cap_outliers_iqr(col, self.train)
 
         scaler = StandardScaler()
         added_const = 0.001
-        for col in self.__train.columns:
+        for col in self.train.columns:
             if col == "Sepsis":
                 continue
-            self.__train[col] = np.where(self.__train[col] != 0, np.log(self.__train[col] + added_const), 0)
-            self.__train[col] = np.where(self.__train[col] != 0, np.log(self.__train[col] + added_const), 0)
-            self.__train[[col]] = scaler.fit_transform(self.__train[[col]])
-            self.__train[[col]] = scaler.fit_transform(self.__train[[col]])
+            self.train[col] = np.where(self.train[col] != 0, np.log(self.train[col] + added_const), 0)
+            self.test[col] = np.where(self.test[col] != 0, np.log(self.test[col] + added_const), 0)
+            self.train[[col]] = scaler.fit_transform(self.train[[col]])
+            self.test[[col]] = scaler.fit_transform(self.test[[col]])
 
-        negatives = self.__train[self.__train["Sepsis"] == 0]
-        positives = self.__train[self.__train["Sepsis"] == 1]
+        negatives = self.train[self.train["Sepsis"] == 0]
+        positives = self.train[self.train["Sepsis"] == 1]
         positives_up_sampled = resample(
             positives,
             replace=True,  # sample with replacement
@@ -56,13 +66,22 @@ class Data:
             random_state=0  # reproducible results
         )
 
-        self.__train = pd.concat([negatives, positives_up_sampled])
+        self.train = pd.concat([negatives, positives_up_sampled])
 
     def show_distribution(self) -> None:
-        show_aggregate_distribution(self.__train, self.__test)
+        """
+        Displays an overview histogram map (y-axis is probability density) of all features in train and test DataFrame,
+        overlaid on top of each other (except for the target column).
+        :return: None
+        """
+        show_aggregate_distribution(self.train, self.test)
 
     def show_boxplots(self) -> None:
-        show_boxplots(self.__train, self.__test)
+        """
+        Shows comparison histograms and accompanying box plots for col of both train and test DataFrame.
+        :return: None
+        """
+        show_boxplots(self.train, self.test)
 
 
 def impute_outliers_iqr(col: str, df: pd.DataFrame, imputer, whisker_width: float = 1.5) -> None:
@@ -71,8 +90,7 @@ def impute_outliers_iqr(col: str, df: pd.DataFrame, imputer, whisker_width: floa
     :param col: Name of the column to impute outliers in.
     :param df: Pandas dataframe containing the column.
     :param imputer: An imputer object that will be used to impute the missing values.
-    :param whisker_width: The multiplier used to calculate the lower and upper bounds for outlier detection.
-    Defaults to 1.5.
+    :param whisker_width: The multiplier used to calculate the lower and upper bounds for outlier detection. Defaults to 1.5.
     :return: None
     """
     # Calculate IQR
