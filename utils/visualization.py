@@ -258,7 +258,7 @@ def show_train_val_confusion_matrix(true_train_y: np.ndarray, train_pred_y: np.n
 
 
 def visualize_training(model, clf: GridSearchCV, X_train, X_val, y_train, y_val, title: str = None,
-                                    save_path: str = None, save_dpi: int = 300) -> None:
+                       save_path: str = None, save_dpi: int = 300) -> None:
     """
     Visualize training process and results of a given model using F1 score as the metric.
     :param model: Any scikit-learn model.
@@ -282,10 +282,9 @@ def visualize_training(model, clf: GridSearchCV, X_train, X_val, y_train, y_val,
         val_scores.append(f1_score(y_val, model.predict(X_val)))
 
     fig, axis = plt.subplots(figsize=(20, 8))
-    sns.lineplot(x=range(len(clf.cv_results_['params'])), y=val_scores, ax=axis, label="Validation")
-    sns.lineplot(x=range(len(clf.cv_results_['params'])), y=train_scores, ax=axis, label="Train", linestyle="--")
-    sns.lineplot(x=range(len(clf.cv_results_['params'])), y=clf.cv_results_['mean_test_score'], ax=axis,
-                 label="Mean Train", linestyle=":", color="g")
+    sns.lineplot(x=range(len(clf.cv_results_["params"])), y=val_scores, ax=axis, label="Validation")
+    sns.lineplot(x=range(len(clf.cv_results_["params"])), y=train_scores, ax=axis, label="Train", linestyle="--")
+    sns.lineplot(x=range(len(clf.cv_results_["params"])), y=clf.cv_results_["mean_test_score"], ax=axis, label="CV Train", linestyle=":", color="g")
     axis.set_ylim(bottom=0.65)
     axis.axvline(x=clf.best_index_, color="y", label="Best Score")
     axis.legend()
