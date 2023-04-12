@@ -1,7 +1,10 @@
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib import ticker
+from sklearn.metrics import confusion_matrix, classification_report, f1_score
+from sklearn.model_selection import GridSearchCV
 
 
 def header(width: int, title: str) -> str:
@@ -200,6 +203,98 @@ def show_boxplots(train: pd.DataFrame, test: pd.DataFrame, save_path: str = None
     axes[1].set_title("Test Data")
 
     plt.show()
+    if save_path is not None:
+        fig.savefig(save_path, dpi=save_dpi)
+
+
+def show_train_val_confusion_matrix(true_train_y: np.ndarray, train_pred_y: np.ndarray,
+                                    true_val_y: np.ndarray, val_pred_y: np.ndarray,
+                                    title: str = None,
+                                    save_path: str = None, save_dpi: int = 300) -> None:
+    """
+    Plots confusion matrices for true and predicted labels for training and validation sets. Also prints the
+    classification report for both training and validation sets, which includes metrics like precision, recall,
+    f1-score, and support.
+    :param true_train_y: Train set true y
+    :param train_pred_y: Train set predicted y
+    :param true_val_y: Validation set true y
+    :param val_pred_y: Validation set predicted y
+    :param title: The title for this plot (only display if provided). Defaults to None (not shown).
+    :param save_path: The location for the plot produced by this function to be saved at. Defaults to None (no saving).
+    :param save_dpi: The quality of the saved plot. Only takes effect if save_path is not None.
+    :return: None
+    """
+    fig, axis = plt.subplots(nrows=1, ncols=2, figsize=(8, 3))
+
+    sns.heatmap(confusion_matrix(true_train_y, train_pred_y), annot=True, cmap="Blues", fmt="g", ax=axis[0])
+    axis[0].set_xlabel("Predicted Values")
+    axis[0].set_ylabel("True Values")
+    axis[0].set_title("Training")
+
+    axis[0].set_xticks([0.5, 1.5])
+    axis[0].set_xticklabels(["Negative", "Positive"])
+    axis[0].set_yticks([0.5, 1.5])
+    axis[0].set_yticklabels(["Negative", "Positive"])
+
+    sns.heatmap(confusion_matrix(true_val_y, val_pred_y), annot=True, cmap="Blues", fmt="g", ax=axis[1])
+    axis[1].set_xlabel("Predicted Values")
+    axis[1].set_ylabel("True Values")
+    axis[1].set_title("Validation")
+
+    axis[1].set_xticks([0.5, 1.5])
+    axis[1].set_xticklabels(["Negative", "Positive"])
+    axis[1].set_yticks([0.5, 1.5])
+    axis[1].set_yticklabels(["Negative", "Positive"])
+
+    fig.subplots_adjust(wspace=0.4)
+    if title is not None:
+        fig.suptitle(title, fontsize=16, fontweight="bold", y=1.2)
+
+    plt.show()
+    if save_path is not None:
+        fig.savefig(save_path, dpi=save_dpi)
+    print(f"{header(53, 'TRAINING PERFORMANCE')}\n{classification_report(true_train_y, train_pred_y)}")
+    print(f"{header(53, 'VALIDATION PERFORMANCE')}\n{classification_report(true_val_y, val_pred_y)}")
+
+
+def visualize_training(model, clf: GridSearchCV, X_train, X_val, y_train, y_val, title: str = None,
+                                    save_path: str = None, save_dpi: int = 300) -> None:
+    """
+    Visualize training process and results of a given model using F1 score as the metric.
+    :param model: Any scikit-learn model.
+    :param clf: GridSearchCV object for hyperparameter tuning.
+    :param X_train: Training data.
+    :param X_val: Validation data.
+    :param y_train: Training data target.
+    :param y_val: Validation data target.
+    :param title: A string containing the title for the visualization (optional).
+    :param save_path: The location for the plot produced by this function to be saved at. Defaults to None (no saving).
+    :param save_dpi: The quality of the saved plot. Only takes effect if save_path is not None.
+    :return: None
+    """
+    train_scores = []
+    val_scores = []
+    for i, p in enumerate(clf.cv_results_['params']):
+        model.set_params(**p)
+        model.fit(X_train, y_train.values.ravel())
+        train_scores.append(f1_score(y_train, model.predict(X_train)))
+        model.fit(X_val, y_val.values.ravel())
+        val_scores.append(f1_score(y_val, model.predict(X_val)))
+
+    fig, axis = plt.subplots(figsize=(20, 8))
+    sns.lineplot(x=range(len(clf.cv_results_['params'])), y=val_scores, ax=axis, label="Validation")
+    sns.lineplot(x=range(len(clf.cv_results_['params'])), y=train_scores, ax=axis, label="Train", linestyle="--")
+    sns.lineplot(x=range(len(clf.cv_results_['params'])), y=clf.cv_results_['mean_test_score'], ax=axis,
+                 label="Mean Train", linestyle=":", color="g")
+    axis.set_ylim(bottom=0.65)
+    axis.axvline(x=clf.best_index_, color="y", label="Best Score")
+    axis.legend()
+    axis.set_xlabel("Hyperparameter")
+    axis.set_ylabel("F1 Score")
+    if title is not None:
+        axis.set_title(title)
+    plt.show()
+
     if save_path is not None:
         fig.savefig(save_path, dpi=save_dpi)
 
