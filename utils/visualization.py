@@ -257,43 +257,46 @@ def show_train_val_confusion_matrix(true_train_y: np.ndarray, train_pred_y: np.n
     print(f"{header(53, 'VALIDATION PERFORMANCE')}\n{classification_report(true_val_y, val_pred_y)}")
 
 
-def visualize_training(model, clf: GridSearchCV, X_train, X_val, y_train, y_val, title: str = None,
-                       save_path: str = None, save_dpi: int = 300) -> None:
+def visualize_training(clf: GridSearchCV, title: str = None, save_path: str = None, save_dpi: int = 300) -> None:
     """
     Visualize training process and results of a given model using F1 score as the metric.
-    :param model: Any scikit-learn model.
     :param clf: GridSearchCV object for hyperparameter tuning.
-    :param X_train: Training data.
-    :param X_val: Validation data.
-    :param y_train: Training data target.
-    :param y_val: Validation data target.
     :param title: A string containing the title for the visualization (optional).
     :param save_path: The location for the plot produced by this function to be saved at. Defaults to None (no saving).
     :param save_dpi: The quality of the saved plot. Only takes effect if save_path is not None.
     :return: None
     """
-    train_scores = []
-    val_scores = []
-    for i, p in enumerate(clf.cv_results_['params']):
-        model.set_params(**p)
-        model.fit(X_train, y_train.values.ravel())
-        train_scores.append(f1_score(y_train, model.predict(X_train)))
-        model.fit(X_val, y_val.values.ravel())
-        val_scores.append(f1_score(y_val, model.predict(X_val)))
-
-    fig, axis = plt.subplots(figsize=(20, 8))
-    sns.lineplot(x=range(len(clf.cv_results_["params"])), y=val_scores, ax=axis, label="Validation")
-    sns.lineplot(x=range(len(clf.cv_results_["params"])), y=train_scores, ax=axis, label="Train", linestyle="--")
-    sns.lineplot(x=range(len(clf.cv_results_["params"])), y=clf.cv_results_["mean_test_score"], ax=axis, label="CV Train", linestyle=":", color="g")
-    axis.set_ylim(bottom=0.65)
-    axis.axvline(x=clf.best_index_, color="y", label="Best Score")
-    axis.legend()
-    axis.set_xlabel("Hyperparameter")
-    axis.set_ylabel("F1 Score")
+    fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(18, 10), sharex="all")
+    sns.lineplot(
+        x=range(len(clf.cv_results_["params"])), y=clf.cv_results_["mean_test_f1"],
+        ax=axes[0], label="Test", linestyle="-", color="crimson"
+    )
+    sns.lineplot(
+        x=range(len(clf.cv_results_["params"])), y=clf.cv_results_["mean_train_f1"],
+        ax=axes[0], label="Train", linestyle="--", color="royalblue"
+    )
+    axes[0].axvline(x=clf.best_index_, color="y", label="Best Score")
+    axes[0].legend()
+    axes[0].set_xlabel("Hyperparameter")
+    axes[0].set_ylabel("F1 Score")
     if title is not None:
-        axis.set_title(title)
-    plt.show()
+        axes[0].set_title(title)
 
+    sns.lineplot(
+        x=range(len(clf.cv_results_["params"])), y=clf.cv_results_["mean_test_roc_auc"],
+        ax=axes[1], label="Test", linestyle="-", color="crimson"
+    )
+    sns.lineplot(
+        x=range(len(clf.cv_results_["params"])), y=clf.cv_results_["mean_train_roc_auc"],
+        ax=axes[1], label="Train", linestyle="--", color="royalblue"
+    )
+    axes[1].axvline(x=clf.best_index_, color="y", label="Best Score")
+    axes[1].legend()
+    axes[1].set_xlabel("Hyperparameter")
+    axes[1].set_ylabel("ROC-AUC")
+
+    fig.tight_layout()
+    plt.show()
     if save_path is not None:
         fig.savefig(save_path, dpi=save_dpi)
 
