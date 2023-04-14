@@ -257,13 +257,14 @@ def show_train_val_confusion_matrix(true_train_y: np.ndarray, train_pred_y: np.n
     print(f"{header(53, 'VALIDATION PERFORMANCE')}\n{classification_report(true_val_y, val_pred_y)}")
 
 
-def visualize_training(clf: GridSearchCV, title: str = None, save_path: str = None, save_dpi: int = 300) -> None:
+def visualize_training(clf: GridSearchCV, title: str = None, save_path: str = None, save_dpi: int = 300, best=None) -> None:
     """
     Visualize training process and results of a given model using F1 score as the metric.
     :param clf: GridSearchCV object for hyperparameter tuning.
     :param title: A string containing the title for the visualization (optional).
     :param save_path: The location for the plot produced by this function to be saved at. Defaults to None (no saving).
     :param save_dpi: The quality of the saved plot. Only takes effect if save_path is not None.
+    :param best: Select a different line marking from clf.clf.best_index_. Defaults to None.
     :return: None
     """
     fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(18, 10), sharex="all")
@@ -275,7 +276,10 @@ def visualize_training(clf: GridSearchCV, title: str = None, save_path: str = No
         x=range(len(clf.cv_results_["params"])), y=clf.cv_results_["mean_train_f1"],
         ax=axes[0], label="Train", linestyle="--", color="royalblue"
     )
-    axes[0].axvline(x=clf.best_index_, color="y", label="Best Score")
+    if best is None:
+        axes[0].axvline(x=clf.best_index_, color="y", label="Best Score")
+    else:
+        axes[0].axvline(x=best, color="y", label="Best")
     axes[0].legend()
     axes[0].set_xlabel("Hyperparameter")
     axes[0].set_ylabel("F1 Score")
@@ -290,7 +294,10 @@ def visualize_training(clf: GridSearchCV, title: str = None, save_path: str = No
         x=range(len(clf.cv_results_["params"])), y=clf.cv_results_["mean_train_roc_auc"],
         ax=axes[1], label="Train", linestyle="--", color="royalblue"
     )
-    axes[1].axvline(x=clf.best_index_, color="y", label="Best Score")
+    if best is None:
+        axes[1].axvline(x=clf.best_index_, color="y", label="Best Score")
+    else:
+        axes[1].axvline(x=best, color="y", label="Best")
     axes[1].legend()
     axes[1].set_xlabel("Hyperparameter")
     axes[1].set_ylabel("ROC-AUC")
